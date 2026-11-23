@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "chili-cookoff",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-09-01",
+  // Static pages (vote, admin, big-screen reveal) live in ./public.
+  // Anything under /api/* falls through to the Worker.
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "chili-cookoff",
+      // Replace with the id printed by `npx wrangler d1 create chili-cookoff`.
+      // (Local dev works without changing it.)
+      "database_id": "ed0188e3-b415-48c1-8f16-966c6478a35f"
+    }
+  ]
+}

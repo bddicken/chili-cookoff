@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1b100b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Turkey Racer</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦃</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,800&family=Rye&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    /* Phone-first game shell: no scrolling, zooming, text selection or long-press menus. */
+    html, body { height: 100%; overflow: hidden; overscroll-behavior: none; position: fixed; inset: 0; }
+    body.race {
+      touch-action: none; user-select: none; -webkit-user-select: none;
+      -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+    }
+    #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    button, a { touch-action: manipulation; }
+
+    .icon-btn {
+      position: fixed; z-index: 7;
+      top: calc(10px + env(safe-area-inset-top));
+      min-width: 44px; height: 44px; padding: 0 14px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      border-radius: 999px; border: 1px solid var(--line);
+      background: rgba(27, 16, 11, 0.72); backdrop-filter: blur(6px);
+      color: var(--cream); font-weight: 800; font-size: 0.9rem; text-decoration: none;
+    }
+    .icon-btn.left { left: calc(10px + env(safe-area-inset-left)); }
+    .icon-btn.right { right: calc(10px + env(safe-area-inset-right)); padding: 0; width: 44px; font-size: 1.2rem; }
+
+    .race-logo {
+      position: fixed; z-index: 4; left: 0; right: 0;
+      top: calc(62px + env(safe-area-inset-top));
+      margin: 0; text-align: center; pointer-events: none;
+      font-family: var(--display); font-weight: 400;
+      font-size: clamp(2.2rem, 10vw, 3.8rem); line-height: 1;
+      color: var(--cream);
+      text-shadow: 0 3px 0 var(--chili), 0 0 26px rgba(255, 106, 43, 0.65);
+    }
+
+    /* Picker: bottom sheet, big tap targets, scrolls if the screen is short */
+    .sheet {
+      position: fixed; z-index: 5; left: 0; right: 0; bottom: 0;
+      max-width: 560px; margin: 0 auto;
+      max-height: calc(100dvh - 120px - env(safe-area-inset-top)); overflow-y: auto; touch-action: pan-y;
+      padding: 16px calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+      background: rgba(27, 16, 11, 0.92); backdrop-filter: blur(8px);
+      border: 1px solid var(--line); border-bottom: 0; border-radius: 24px 24px 0 0;
+    }
+    .sheet h3 { margin: 0 0 8px; font-family: var(--display); font-weight: 400; font-size: 1.15rem; color: var(--flame); text-align: center; }
+    .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+    .choice {
+      min-height: 84px; border: 0; border-radius: 18px; padding: 10px 4px 9px;
+      background: var(--cream); color: var(--ink); box-shadow: 0 4px 0 #c9a77f;
+      font-family: var(--display); font-weight: 400; font-size: 0.98rem; line-height: 1.1; text-align: center;
+      transition: transform 0.18s cubic-bezier(.2, 1.6, .4, 1), box-shadow 0.12s ease, background 0.12s ease;
+    }
+    .choice:active { transform: translateY(2px) scale(0.97); }
+    .choice .e { display: block; font-size: 2.1rem; line-height: 1.1; margin-bottom: 4px; }
+    .choice .tag { display: block; margin-top: 4px; font-family: var(--body); font-weight: 600; font-size: 0.68rem; color: var(--ink-soft); line-height: 1.2; }
+    .choice[aria-checked='true'] { background: #ffe2b3; box-shadow: 0 4px 0 var(--ember), 0 0 0 3px var(--ember); transform: translateY(-3px) rotate(-2deg); }
+    .choice[aria-checked='true'] .e { animation: hop 0.5s cubic-bezier(.2, 1.6, .4, 1); }
+    @keyframes hop { 40% { transform: translateY(-8px) rotate(8deg); } }
+    .go-btn { min-height: 60px; font-family: var(--display); font-weight: 400; font-size: 1.35rem; letter-spacing: 0.02em; }
+    .stack .btn { font-family: var(--display); font-weight: 400; font-size: 1.1rem; letter-spacing: 0.02em; }
+    .key-hint { text-align: center; color: var(--smoke); font-size: 0.8rem; margin: 10px 0 0; }
+
+    /* HUD */
+    .hud {
+      position: fixed; z-index: 4; left: 60px; right: 60px;
+      top: calc(10px + env(safe-area-inset-top));
+      display: flex; justify-content: center; gap: 6px; pointer-events: none;
+    }
+    .hud-chip {
+      flex: none; box-sizing: border-box; width: 66px;
+      background: rgba(27, 16, 11, 0.75); border: 1px solid var(--line);
+      border-radius: 14px; padding: 4px 4px 5px; text-align: center; overflow: hidden;
+    }
+    .hud-chip.time { width: 92px; }
+    .hud-chip .k { font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--smoke); font-weight: 800; }
+    .hud-chip .v { font-family: var(--display); font-size: 1.35rem; line-height: 1.1; color: var(--cream); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .hud-chip.time .v { display: flex; justify-content: center; }
+    .hud-chip.time .v span { display: inline-block; width: 0.62em; text-align: center; }
+    .hud-chip.time .v span.sep { width: 0.3em; }
+    .hud-chip.place .v { color: var(--flame); }
+    .hud-chip.place.up { animation: placeup 0.6s ease; }
+    @keyframes placeup { 30% { transform: scale(1.25); background: rgba(154, 171, 69, 0.8); } }
+
+    .count, .banner {
+      position: fixed; z-index: 4; left: 0; right: 0; text-align: center; pointer-events: none;
+      font-family: var(--display); color: var(--cream);
+      text-shadow: 0 5px 0 var(--chili), 0 0 50px rgba(255, 106, 43, 0.85);
+    }
+    .count { top: 22%; font-size: clamp(5rem, 28vw, 13rem); line-height: 1; }
+    .count.pop { animation: countpop 0.9s ease-out both; }
+    @keyframes countpop { 0% { transform: scale(2.2); opacity: 0; } 25% { transform: scale(1); opacity: 1; } 80% { opacity: 1; } 100% { transform: scale(0.85); opacity: 0; } }
+    .banner { top: 20%; font-size: clamp(2rem, 10vw, 4.2rem); opacity: 0; }
+    .banner.show { animation: bannerin 1.8s ease both; }
+    @keyframes bannerin { 0% { transform: translateY(20px) scale(0.8); opacity: 0; } 15% { transform: none; opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+    .bubble {
+      position: fixed; z-index: 4; pointer-events: none;
+      transform: translate(-50%, -100%);
+      padding: 7px 13px; border-radius: 16px;
+      background: var(--cream); color: var(--ink);
+      font-weight: 800; font-size: 1rem; white-space: nowrap;
+      box-shadow: 0 4px 0 #c9a77f, 0 8px 18px rgba(0, 0, 0, 0.3);
+    }
+    .bubble::after {
+      content: ''; position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%);
+      border: 9px solid transparent; border-bottom: 0; border-top-color: var(--cream);
+    }
+    .bubble.pop { animation: bubblepop 0.35s cubic-bezier(.2, 1.6, .4, 1) both; }
+    @keyframes bubblepop { from { transform: translate(-50%, -100%) scale(0.3); } to { transform: translate(-50%, -100%) scale(1); } }
+
+    /* Touch controls: left thumb steers, right thumb drives. The whole half of the
+       screen is the hit area; the buttons just show where your thumb is. */
+    .touch { position: fixed; inset: 0; z-index: 3; touch-action: none; }
+    .ctl {
+      position: absolute; display: grid; place-items: center; pointer-events: none;
+      color: var(--cream); font-weight: 800;
+      background: rgba(27, 16, 11, 0.42); border: 2px solid rgba(255, 243, 223, 0.4);
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+      transition: background 0.08s ease, transform 0.08s ease, border-color 0.08s ease;
+    }
+    .ctl.on { background: rgba(255, 106, 43, 0.75); border-color: var(--flame); transform: scale(1.08); }
+    .ctl.steer { width: 78px; height: 78px; border-radius: 50%; font-size: 2rem; bottom: calc(26px + env(safe-area-inset-bottom)); }
+    #c-left { left: calc(14px + env(safe-area-inset-left)); }
+    #c-right { left: calc(102px + env(safe-area-inset-left)); }
+    .ctl.pedal { border-radius: 22px; bottom: calc(26px + env(safe-area-inset-bottom)); letter-spacing: 0.06em; }
+    #c-gas { right: calc(14px + env(safe-area-inset-right)); width: 84px; height: 124px; font-size: 1.05rem; background: rgba(154, 171, 69, 0.55); border-color: rgba(214, 230, 140, 0.7); }
+    #c-gas.on { background: rgba(154, 171, 69, 0.95); border-color: #e3f08f; }
+    #c-rev { right: calc(108px + env(safe-area-inset-right)); width: 70px; height: 78px; font-size: 0.85rem; }
+    .ctl small { display: block; font-size: 1.4rem; line-height: 1; margin-bottom: 2px; }
+    .touch-hint { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; pointer-events: none; opacity: 0; transition: opacity 0.4s ease; }
+    .touch-hint.show { opacity: 1; }
+    .touch-hint div {
+      display: grid; place-items: end center; text-align: center;
+      padding: 0 12px calc(150px + env(safe-area-inset-bottom));
+      font-weight: 800; font-size: 1.05rem; color: var(--cream); text-shadow: 0 2px 6px rgba(0, 0, 0, 0.75);
+    }
+    .touch-hint div:first-child { background: linear-gradient(to top, rgba(255, 181, 46, 0.22), transparent 60%); border-right: 2px dashed rgba(255, 243, 223, 0.35); }
+    .touch-hint div:last-child { background: linear-gradient(to top, rgba(154, 171, 69, 0.25), transparent 60%); }
+
+    .results, .race-msg {
+      position: fixed; z-index: 6; left: 0; right: 0; top: 0; bottom: 0;
+      display: grid; place-items: center; overflow-y: auto; touch-action: pan-y;
+      padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+      background: rgba(27, 16, 11, 0.35);
+    }
+    .results .card, .race-msg .card { width: 100%; max-width: 400px; padding: 24px 18px; }
+    .results .place-big { font-family: var(--display); font-size: 3.4rem; line-height: 1; color: var(--chili); margin: 4px 0; }
+    .results .times { display: flex; justify-content: center; gap: 22px; margin: 12px 0 4px; }
+    .results .times div { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); font-weight: 800; }
+    .results .times b { display: block; font-family: var(--display); font-size: 1.5rem; color: var(--ink); letter-spacing: 0; font-weight: 400; }
+    .results .new-best { color: var(--ember); font-weight: 800; }
+    .name-form { margin: 14px 0 0; text-align: left; }
+    .name-form label { display: block; font-family: var(--display); font-size: 1rem; color: var(--chili); text-align: center; margin-bottom: 8px; }
+    .name-row { display: flex; gap: 8px; }
+    .name-row input {
+      flex: 1; min-width: 0; height: 50px; padding: 0 14px;
+      border-radius: 14px; border: 2px solid #e6cfa9; background: #fff;
+      color: var(--ink); font: 600 16px var(--body); /* 16px stops iPhones zooming in */
+      -webkit-user-select: text; user-select: text;
+    }
+    .name-row input:focus { outline: none; border-color: var(--ember); }
+    .name-row input:disabled { background: #fbf3e4; color: var(--ink-soft); }
+    .name-row .btn { width: auto; min-width: 84px; height: 50px; padding: 0 16px; font-family: var(--display); font-weight: 400; font-size: 1.05rem; }
+    .name-msg { min-height: 1.2em; margin: 6px 0 0; text-align: center; font-size: 0.85rem; font-weight: 700; color: var(--ink-soft); }
+    .stack { display: grid; gap: 10px; margin-top: 18px; }
+    .stack .btn { width: 100%; min-height: 54px; text-decoration: none; display: grid; place-items: center; }
+    .stack .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* Short screens (phone in landscape, small phones) */
+    @media (max-height: 640px) {
+      .race-logo { font-size: 2rem; top: calc(14px + env(safe-area-inset-top)); }
+      .choice { min-height: 70px; padding: 7px 4px; font-size: 0.88rem; }
+      .choice .e { font-size: 1.6rem; margin-bottom: 2px; }
+      .choice .tag { font-size: 0.62rem; margin-top: 2px; }
+      .choices { margin-bottom: 10px; }
+      .go-btn { min-height: 52px; }
+      .key-hint { display: none; }
+      .count { top: 12%; }
+      .ctl.steer { width: 66px; height: 66px; }
+      #c-right { left: calc(90px + env(safe-area-inset-left)); }
+      #c-gas { width: 76px; height: 100px; }
+      #c-rev { right: calc(100px + env(safe-area-inset-right)); width: 64px; height: 66px; }
+    }
+    @media (max-height: 480px) and (orientation: landscape) {
+      .sheet { left: auto; right: 0; top: 0; max-width: 420px; max-height: 100dvh; padding-top: calc(62px + env(safe-area-inset-top)); border-radius: 24px 0 0 24px; border-bottom: 1px solid var(--line); }
+      .race-logo { right: 420px; top: auto; bottom: calc(18px + env(safe-area-inset-bottom)); }
+    }
+  </style>
+  <script type="importmap">
+    { "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body class="race">
+  <canvas id="game" aria-label="Turkey Racer game"></canvas>
+  <a class="icon-btn left" id="back" href="/">← Ballot</a>
+  <button class="icon-btn left" id="quit" hidden aria-label="Quit race" style="padding:0;width:44px;font-size:1.1rem">✕</button>
+  <button class="icon-btn right" id="mute" aria-label="Sound on">🔊</button>
+  <h1 class="race-logo" id="logo" hidden>Turkey Racer</h1>
+
+  <div class="sheet" id="select" hidden>
+    <h3>Pick your racer</h3>
+    <div class="choices" id="chars" role="radiogroup" aria-label="Racer"></div>
+    <h3>Pick your ride</h3>
+    <div class="choices" id="cars" role="radiogroup" aria-label="Car"></div>
+    <button class="btn btn-fire go-btn" id="go">🏁 Start your engines!</button>
+    <p class="key-hint" id="key-hint"></p>
+  </div>
+
+  <div class="hud" id="hud" hidden>
+    <div class="hud-chip"><div class="k">Lap</div><div class="v" id="h-lap">1/2</div></div>
+    <div class="hud-chip place" id="h-place-chip"><div class="k">Place</div><div class="v" id="h-place">1st</div></div>
+    <div class="hud-chip time"><div class="k">Time</div><div class="v" id="h-time">0:00.0</div></div>
+  </div>
+  <div class="count" id="count"></div>
+  <div class="banner" id="banner"></div>
+  <div class="bubble" id="bubble" hidden></div>
+
+  <div class="touch" id="touch" hidden>
+    <div class="touch-hint" id="touch-hint">
+      <div>Left thumb<br>◀ steer ▶</div>
+      <div>Right thumb<br>gas / reverse</div>
+    </div>
+    <div class="ctl steer" id="c-left">◀</div>
+    <div class="ctl steer" id="c-right">▶</div>
+    <div class="ctl pedal" id="c-rev"><span><small>↓</small>REV</span></div>
+    <div class="ctl pedal" id="c-gas"><span><small>↑</small>GAS</span></div>
+  </div>
+
+  <div class="results" id="results" hidden></div>
+  <div class="race-msg" id="msg" hidden></div>
+
+  <script src="/common.js"></script>
+  <script type="module" src="/race.js"></script>
+</body>
+</html>

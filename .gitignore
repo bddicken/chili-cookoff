@@ -1,0 +1,12 @@
+# dependencies & local build/dev state
+node_modules/
+.wrangler/
+
+# secrets (local admin key); see .dev.vars.example
+.dev.vars
+.env
+.env.*
+
+# editor / tool / OS files
+.claude/
+.DS_Store

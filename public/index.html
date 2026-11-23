@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1b100b">
+  <title>Chili Cook-Off · Vote</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌶️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,800&family=Rye&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="gingham" aria-hidden="true"></div>
+  <div class="leaves" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <header class="hero">
+      <h1 class="title" id="title">Chili Cook-Off</h1>
+      <p class="sub" id="sub">Try 'em, then pick your favorite.</p>
+    </header>
+    <section id="view" aria-live="polite">
+      <div class="picks"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+    </section>
+    <p class="foot">1 vote per person</p>
+  </main>
+
+  <div class="dock" id="dock" hidden>
+    <button class="btn btn-fire" id="submit" disabled>Pick a chili above</button>
+  </div>
+
+  <script src="/common.js"></script>
+  <script src="/vote.js"></script>
+</body>
+</html>

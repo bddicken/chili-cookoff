@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1b100b">
+  <meta name="robots" content="noindex">
+  <title>Pit Boss Panel</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,800&family=Rye&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="admin">
+  <div class="gingham" aria-hidden="true"></div>
+  <main class="wrap">
+    <header class="hero">
+      <span class="pill">🔥 Pit Boss Panel 🔥</span>
+      <h1 class="title" id="title">Chili Cook-Off</h1>
+    </header>
+    <div id="app"></div>
+  </main>
+
+  <!-- Only visible when printing -->
+  <!-- Two copies per letter sheet; cut along the dashed line -->
+  <div class="poster" aria-hidden="true">
+    <section class="half">
+      <h1 class="poster-title">Chili Cook-Off</h1>
+      <p class="tag">Scan to vote for your favorite!</p>
+      <div class="qr poster-qr"></div>
+      <div class="peppers">🌶️ 🔥 🍂 🔥 🌶️</div>
+    </section>
+    <section class="half">
+      <h1 class="poster-title">Chili Cook-Off</h1>
+      <p class="tag">Scan to vote for your favorite!</p>
+      <div class="qr poster-qr"></div>
+      <div class="peppers">🌶️ 🔥 🍂 🔥 🌶️</div>
+    </section>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <script src="/common.js"></script>
+  <script src="/admin.js"></script>
+</body>
+</html>
